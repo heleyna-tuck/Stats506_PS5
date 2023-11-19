@@ -73,7 +73,7 @@ ggplot(avg_temp_df, aes(x = month, y = avg_temp, group = season, color = season)
 
 Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season.
 
-### Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, )3, and dewpoint
+### \*Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, o3, and dewpoint
 
 Produce a similar plot with four sets of lines: mean monthly temperature in celsius, mean montly O3, mean monthly PM10, and mean monthly dewpoint. Figure out a way to distinguish between the four lines. Again, make sure the plot is publication-ready (clean and clear labels). Use the plot to answer the following question:
 
@@ -109,10 +109,185 @@ avg_df$month <- factor(avg_temp_df$month, levels = c("Jan", "Feb", "Mar","Apr", 
 
 avg_df$season <- factor(avg_temp_df$season, levels = c("Winter", "Spring", "Summer", "Autumn"))
 
-ggplot(avg_df, aes(x = month, y = c(avg_temp, avg_o3, avg_pm10, avg_dew), group = season, color = season)) +
+ggplot(avg_df, aes(x = month, y = data.frame(avg_temp, avg_o3, avg_pm10, avg_dew), group = season, color = season)) +
   geom_point() +
   geom_line() +
   labs(title = "Monthly Temperature",
        x = "Month",
        y = "Temperature (Celsius)")
+```
+
+\*Not sure how to plot with 4 variables on the y-axis?
+
+# Problem 2 - OOP Programming
+
+Create a class to represent a polynomial expression (such as 7x\^2 - 3x +2) called poly. Do this using S4.
+
+### Part A: For the poly class, define the following:
+
+-   A constructor
+
+-   A validator
+
+-   A show method
+
+-   Addition and subtraction
+
+I will write the poly class below:
+
+```{r}
+# Define the poly class
+setClass("poly",
+         representation(degree = "numeric", coefficients = "numeric"),
+         prototype(degree = 0, coefficients = numeric(0)))
+
+# Constructor function for the poly class
+poly <- function(degree, coefficients) {
+  # Validate input
+  if (!is.numeric(degree) || !is.numeric(coefficients)) {
+    stop("Both degree and coefficients must be numeric.")
+  }
+  
+  if (length(coefficients) != degree + 1) {
+    stop("Length of coefficients must be degree + 1.")
+  }
+  
+  # Create an instance of the poly class
+  new("poly", degree = degree, coefficients = coefficients)
+}
+
+# Validator method for the poly class
+setValidity("poly",
+            function(object) {
+              if (!is.numeric(object@degree) || !is.numeric(object@coefficients)) {
+                return("Both degree and coefficients must be numeric.")
+              }
+              
+              if (length(object@coefficients) != object@degree + 1) {
+                return("Length of coefficients must be degree + 1.")
+              }
+              return(TRUE)
+            })
+
+# Show method for the poly class
+setMethod("show",
+          signature = "poly",
+          function(object) {
+            cat("Polynomial of degree", object@degree, "with coefficients:", object@coefficients, "\n")
+          })
+
+# Addition method for the poly class
+setMethod("+",
+          signature = c("poly", "poly"),
+          function(e1, e2) {
+            # Ensure both polynomials have the same degree
+            if (e1@degree != e2@degree) {
+              stop("Polynomials must have the same degree for addition. (add 0 coefficents when necessary)")
+            }
+            
+            # Perform addition of coefficients
+            result_coefficients <- e1@coefficients + e2@coefficients
+            
+            # Create a new polynomial with the result
+            poly(degree = e1@degree, coefficients = result_coefficients)
+          })
+
+# Subtraction method for the poly class
+setMethod("-",
+          signature = c("poly", "poly"),
+          function(e1, e2) {
+            # Ensure both polynomials have the same degree
+            if (e1@degree != e2@degree) {
+              stop("Polynomials must have the same degree for subtraction.(add 0 coefficients when necessary)")
+            }
+            
+            # Perform subtraction of coefficients
+            result_coefficients <- e1@coefficients - e2@coefficients
+            
+            # Create a new polynomial with the result
+            poly(degree = e1@degree, coefficients = result_coefficients)
+          })
+
+
+```
+
+### Part B - Test Code
+
+Use your poly class to run the following code:
+
+*In my class above, the polynomials must be the same degree, so I will modify the code accordingly to work with addition and subtraction.*
+
+```{r}
+
+p1 <- poly(3, c(2, 0, 3, 0))
+p2 <- poly(3, c(7, -2, -1, 17))
+p1
+p2
+p1+p2
+p1-p2
+```
+
+As we can see above, with the necessary changes from the PS example, the class outputs the expected output.
+
+# Problem 3 - data.table
+
+Repeat Problem 1 fro PS4 using data.table
+
+Install and load the package [**nycflights13**](https://cran.r-project.org/package=nycflights13).
+
+### \*Part A - Generating summary tables for the data
+
+Generate a table (which can just be a nicely printed tibble) reporting the mean and median departure delay per airport. Generate a second table (which again can be a nicely printed tibble) reporting the mean and median arrival delay per airport. Exclude any destination with under 10 flights. Do this exclusion through code, not manually.
+
+a.  Additionally,
+
+    -   Order both tables in descending mean delay.
+
+    -   Both tables should use the airport *names* not the airport *codes*.
+
+    -   Both tables should print all rows.
+
+    ```{r}
+    library(nycflights13)
+    head(airports)
+    head(flights)
+    head(planes)
+    ```
+
+```{r}
+library(data.table)
+flights_dt <- as.data.table(nycflights13::flights)
+
+# Generate a table reporting mean and median departure delay per airport
+departure_delay_table <- flights_dt[, .(Mean_Departure_Delay = mean(dep_delay, na.rm = TRUE), Median_Departure_Delay = median(dep_delay, na.rm = TRUE)),by = .(origin)][order(-Mean_Departure_Delay)]
+```
+
+```{r}
+# Generate a table reporting mean and median arrival delay per airport
+arrival_delay_table <- flights_dt[, .(Mean_Arrival_Delay = mean(arr_delay, na.rm = TRUE), Median_Arrival_Delay = median(arr_delay, na.rm = TRUE)), by = .(dest)][order(-Mean_Arrival_Delay)]
+```
+
+```{r}
+# Exclude destinations in the arrival table with under 10 flights
+arrival_delay_table <- arrival_delay_table[ , .(Mean_Arrival_Delay, Median_Arrival_Delay), by = .(dest)][flights_dt[, .N, by = .(dest)][N >= 10]$dest]
+```
+
+```{r}
+departure_delay_table
+arrival_delay_table
+```
+
+### \*Part B - How many flights did the aircraft model with the fastest average speed take?
+
+How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entries for the model, average speed (in MPH) and number of flights.
+
+```{r}
+# Calculate average speed (in MPH) for each aircraft model
+flights_dt[, air_time := air_time / 60]  # Convert air_time to hours
+flights_dt[, average_speed := distance / air_time]
+
+# Find the aircraft model with the fastest average speed
+fastest_model <- flights_dt[, .(Average_Speed_MPH = max(average_speed, na.rm = TRUE), Number_of_Flights = .N), by = .(tailnum = model)][order(-Average_Speed_MPH)][1]
+
+fastest_model
 ```
