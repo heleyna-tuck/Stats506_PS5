@@ -72,3 +72,47 @@ ggplot(avg_temp_df, aes(x = month, y = avg_temp, group = season, color = season)
 ```
 
 Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season.
+
+### Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, )3, and dewpoint
+
+Produce a similar plot with four sets of lines: mean monthly temperature in celsius, mean montly O3, mean monthly PM10, and mean monthly dewpoint. Figure out a way to distinguish between the four lines. Again, make sure the plot is publication-ready (clean and clear labels). Use the plot to answer the following question:
+
+\"Which of the four variables seems to have the least seasonal trend?\"
+
+Create a df with averages needed:
+
+```{r}
+# Calculate the average temperature for each month
+avg_temp_per_month <- tapply(nnmaps$tempC, nnmaps$month_numeric, mean)
+avg_03_per_month <- tapply(nnmaps$o3, nnmaps$month_numeric, mean)
+avg_PM10_per_month <- tapply(nnmaps$pm10, nnmaps$month_numeric, mean, na.rm = TRUE)
+avg_dewpoint_per_month <- tapply(nnmaps$dewpoint, nnmaps$month_numeric, mean)
+
+# Create a new data frame with average temperatures and seasons
+avg_df <- data.frame(month_num = names(avg_temp_per_month), avg_temp = avg_temp_per_month, avg_o3 = avg_03_per_month, avg_pm10 = avg_PM10_per_month, avg_dew = avg_dewpoint_per_month)
+avg_df$month <- month.abb[as.numeric(avg_df$month_num)]
+
+avg_df <- avg_df %>%
+  mutate(season = case_when(
+  month %in% c("Jan", "Feb", "Mar") ~ "Winter",
+  month %in% c("Apr", "May", "Jun") ~ "Spring",
+  month %in% c("Jul", "Aug", "Sep") ~ "Summer",
+  month %in% c("Oct", "Nov", "Dec") ~ "Autumn"))
+avg_df
+```
+
+Graph, similar to part (a):
+
+```{r}
+# Order the "Month" factor
+avg_df$month <- factor(avg_temp_df$month, levels = c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+avg_df$season <- factor(avg_temp_df$season, levels = c("Winter", "Spring", "Summer", "Autumn"))
+
+ggplot(avg_df, aes(x = month, y = c(avg_temp, avg_o3, avg_pm10, avg_dew), group = season, color = season)) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Monthly Temperature",
+       x = "Month",
+       y = "Temperature (Celsius)")
+```
