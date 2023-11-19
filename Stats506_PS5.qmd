@@ -1,0 +1,74 @@
+---
+title: "Stats506_PS6"
+author: "Heleyna Tucker"
+format: html
+editor: visual
+---
+
+# Problem 1 - Plotting
+
+Using the "nnmaps" data set again. ggplot2 is recommending for these.
+
+### Part A: Produce a graph of the mean monthly temp in Celsius
+
+Produce a graph of the **mean** monthly temperature in **celsius**. Draw a scatter-plot where the x-axis is month and the y-axis is the average monthly temperature in celsius. Add a line connecting the points within each season and color the lines and points by season (same color for lines and points in the same season). Be sure both x-axis and the legend are ordered appropriately, and that all labels/titles are clear and ready for publication (e.g. no variable names).
+
+Read in the data and visualize below:
+
+```{r}
+library(tidyverse)
+nnmaps <- read_csv('/Users/19892/OneDrive/Documents/STATS506/ProblemSets/Stats506_PS5/chicago-nmmaps (1).csv')
+head(nnmaps)
+```
+
+Convert Fahrenheit and add a column to the dataset with this conversion:
+
+```{r}
+# Function to convert Fahrenheit to Celsius
+fahrenheit_to_celsius <- function(fahrenheit) {
+  celsius <- (fahrenheit - 32) * (5/9)
+  return(celsius)
+}
+
+nnmaps$tempC <- fahrenheit_to_celsius(nnmaps$temp)
+head(nnmaps)
+nnmaps$month
+```
+
+```{r}
+library(dplyr)
+# Calculate the average temperature for each month
+avg_temp_per_month <- tapply(nnmaps$tempC, nnmaps$month_numeric, mean)
+
+
+# Create a new data frame with average temperatures and seasons
+avg_temp_df <- data.frame(month_num = names(avg_temp_per_month), avg_temp = avg_temp_per_month)
+avg_temp_df$month <- month.abb[as.numeric(avg_temp_df$month_num)]
+
+avg_temp_df <- avg_temp_df %>%
+  mutate(season = case_when(
+  month %in% c("Jan", "Feb", "Mar") ~ "Winter",
+  month %in% c("Apr", "May", "Jun") ~ "Spring",
+  month %in% c("Jul", "Aug", "Sep") ~ "Summer",
+  month %in% c("Oct", "Nov", "Dec") ~ "Autumn"))
+avg_temp_df
+```
+
+```{r}
+library(ggplot2)
+
+# Order the "Month" factor
+avg_temp_df$month <- factor(avg_temp_df$month, levels = c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+avg_temp_df$season <- factor(avg_temp_df$season, levels = c("Winter", "Spring", "Summer", "Autumn"))
+
+ggplot(avg_temp_df, aes(x = month, y = avg_temp, group = season, color = season)) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Monthly Temperature",
+       x = "Month",
+       y = "Temperature (Celsius)")
+  
+```
+
+Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season.
