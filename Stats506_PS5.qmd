@@ -134,18 +134,25 @@ avg_df_dew$season <- factor(avg_temp_df$season, levels = c("Winter", "Spring", "
 Graph, similar to part (a):
 
 ```{r}
-
 ggplot() +
-  geom_point(avg_df_temp, mapping = aes(x = month, y = avg_temp, group = season, color = season)) +
+  geom_point(avg_df_temp, mapping = aes(x = month, y = avg_temp, color = season)) +
+  geom_line(avg_df_temp, mapping = aes(x = month, y = avg_temp, color = season, group = season, linetype = "Average Temperature (C)"))+
   geom_point(avg_df_o3, mapping = aes(x = month, y = avg_o3, group = season, color = season)) +
+    geom_line(avg_df_o3, mapping = aes(x = month, y = avg_o3, color = season, group = season, linetype = "Average o3"))+
   geom_point(avg_df_pm10, mapping = aes(x = month, y = avg_pm10, group = season, color = season)) + 
+      geom_line(avg_df_pm10, mapping = aes(x = month, y = avg_pm10, color = season, group = season, linetype = "Average PM10"))+
   geom_point(avg_df_dew, mapping = aes(x = month, y = avg_dew, group = season, color = season)) +
+        geom_line(avg_df_dew, mapping = aes(x = month, y = avg_dew, color = season, group = season, linetype = "Average Dewpoint"))+
   labs(title = "Monthly Avgerages",
        x = "Month",
-       y = "Average Values")
+       y = "Average Values",
+       color = "Season",
+       linetype = "Data Frame")+
+  scale_linetype_manual(values = c("Average Temperature (C)" = "solid", "Average o3" = "dashed", "Average PM10" = "dotted", "Average Dewpoint" = "dotdash"))
+  
 ```
 
-\*Not sure how to plot with 4 variables on the y-axis?
+Above we can see a plot with 4 variables being displayed. Both keys show what each color and lin type corresponds to. Using the graph above, we can tell that the Average PM10 variable has the least seasonal trend.
 
 # Problem 2 - OOP Programming
 
