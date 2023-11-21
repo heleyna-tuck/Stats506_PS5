@@ -1,5 +1,5 @@
 ---
-title: "Stats506_PS6"
+title: "Stats506_PS5"
 author: "Heleyna Tucker"
 format:
   html:
