@@ -32,7 +32,6 @@ fahrenheit_to_celsius <- function(fahrenheit) {
 
 nnmaps$tempC <- fahrenheit_to_celsius(nnmaps$temp)
 head(nnmaps)
-nnmaps$month
 ```
 
 ```{r}
@@ -41,7 +40,7 @@ library(dplyr)
 avg_temp_per_month <- tapply(nnmaps$tempC, nnmaps$month_numeric, mean)
 
 
-# Create a new data frame with average temperatures and seasons
+# Create a new data frame with average temperatures, months, and seasons
 avg_temp_df <- data.frame(month_num = names(avg_temp_per_month), avg_temp = avg_temp_per_month)
 avg_temp_df$month <- month.abb[as.numeric(avg_temp_df$month_num)]
 
@@ -71,15 +70,15 @@ ggplot(avg_temp_df, aes(x = month, y = avg_temp, group = season, color = season)
   
 ```
 
-Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season.
+Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season. This behaves how we would expect, with the warmer seasons trending with hotter temperatures and vice versa.
 
 ### Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, o3, and dewpoint
 
-Produce a similar plot with four sets of lines: mean monthly temperature in celsius, mean montly O3, mean monthly PM10, and mean monthly dewpoint. Figure out a way to distinguish between the four lines. Again, make sure the plot is publication-ready (clean and clear labels). Use the plot to answer the following question:
+Produce a similar plot with four sets of lines: mean monthly temperature in Celsius, mean montly O3, mean monthly PM10, and mean monthly dewpoint. Figure out a way to distinguish between the four lines. Again, make sure the plot is publication-ready (clean and clear labels). Use the plot to answer the following question:
 
 \"Which of the four variables seems to have the least seasonal trend?\"
 
-Create a df with averages needed:
+Create a df with averages needed. Then, create 4 separate dfs with each mean and month/season information:
 
 ```{r}
 # Calculate the average temperature for each month
@@ -270,7 +269,7 @@ Repeat Problem 1 fro PS4 using data.table
 
 Install and load the package [**nycflights13**](https://cran.r-project.org/package=nycflights13).
 
-### \*Part A - Generating summary tables for the data
+### Part A - Generating summary tables for the data
 
 Generate a table (which can just be a nicely printed tibble) reporting the mean and median departure delay per airport. Generate a second table (which again can be a nicely printed tibble) reporting the mean and median arrival delay per airport. Exclude any destination with under 10 flights. Do this exclusion through code, not manually.
 
@@ -292,20 +291,38 @@ a.  Additionally,
 ```{r}
 library(data.table)
 flights_dt <- as.data.table(nycflights13::flights)
+airports <- as.data.table(nycflights13::airports)
+planes <- as.data.table(nycflights13::planes)
 
 # Generate a table reporting mean and median departure delay per airport
-departure_delay_table <- flights_dt[, .(Mean_Departure_Delay = mean(dep_delay, na.rm = TRUE), Median_Departure_Delay = median(dep_delay, na.rm = TRUE)),by = .(origin)][order(-Mean_Departure_Delay)]
+departure_delay_table <- flights_dt[, .(Mean_Departure_Delay = mean(dep_delay, na.rm = TRUE),
+                                        Median_Departure_Delay = median(dep_delay, na.rm = TRUE)),
+                                    by = .(origin)][order(-Mean_Departure_Delay)]
+
+#Rename Orignin to 'faa'
+setnames(departure_delay_table, "origin", "faa")
+
+#Left Join with 'airports':
+departure_delay_table <- airports[departure_delay_table, on = "faa"]
+
+#Get the columns we want:
+departure_delay_table <- departure_delay_table[, .(name, Mean_Departure_Delay, Median_Departure_Delay)]
 ```
 
 ```{r}
 # Generate a table reporting mean and median arrival delay per airport
-arrival_delay_table <- flights_dt[, .(Mean_Arrival_Delay = mean(arr_delay, na.rm = TRUE), Median_Arrival_Delay = median(arr_delay, na.rm = TRUE)), by = .(dest)][order(-Mean_Arrival_Delay)]
+arrival_delay_table <- flights_dt[, .(Mean_Arrival_Delay = mean(arr_delay, na.rm = TRUE), 
+                                      Median_Arrival_Delay = median(arr_delay, na.rm = TRUE), 
+                                  numflights = .N),
+                                  by = .(dest)][numflights > 10]
 ```
 
 ```{r}
-# Exclude destinations in the arrival table with under 10 flights
-# Exclude destinations with under 10 flights
-arrival_delay_table <- arrival_delay_table[flights_dt[, .N, by = .(dest)][N >= 10]$dest]
+# Left Join:
+arrival_delay_table <- arrival_delay_table[airports, on = .(dest = faa)][, ':='(name = fcoalesce(name, dest))]
+
+#Select the columns we want and order from largest to smalles mean.
+arrival_delay_table <- arrival_delay_table[, .(name, Mean_Arrival_Delay, Median_Arrival_Delay)][order(-Mean_Arrival_Delay)]
 ```
 
 ```{r}
@@ -313,17 +330,26 @@ departure_delay_table
 arrival_delay_table
 ```
 
-### \*Part B - How many flights did the aircraft model with the fastest average speed take?
+### Part B - How many flights did the aircraft model with the fastest average speed take?
 
 How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entries for the model, average speed (in MPH) and number of flights.
 
 ```{r}
 # Calculate average speed (in MPH) for each aircraft model
-flights_dt[, air_time := air_time / 60]  # Convert air_time to hours
-flights_dt[, average_speed := distance / air_time]
+flights_dt[, time := air_time / 60]  # Convert air_time to hours
+flights_dt[, mph := distance / time]
 
+#Merge flights and planes with the tailnum column:
+merged <- merge(flights_dt, planes, by = "tailnum")
+```
+
+Find the model with the fastest average speed in mph:
+
+```{r}
 # Find the aircraft model with the fastest average speed
-fastest_model <- flights_dt[, .(Average_Speed_MPH = max(average_speed, na.rm = TRUE), Number_of_Flights = .N), by = .(tailnum = model)][order(-Average_Speed_MPH)][1]
+fastest_model <- merged[, .(avgmph = mean(mph, na.rm = TRUE), Number_of_Flights = .N), by = .(model)][order(-avgmph)][1]
 
 fastest_model
 ```
+
+Above, we can see that the model with the fastest average speed is model 777-222, with a speed of about 483 mph and 4 flights.
