@@ -5,6 +5,8 @@ format: html
 editor: visual
 ---
 
+GitHub Repo: https://github.com/heleyna-tuck/Stats506_PS5
+
 # Problem 1 - Plotting
 
 Using the "nnmaps" data set again. ggplot2 is recommending for these.
