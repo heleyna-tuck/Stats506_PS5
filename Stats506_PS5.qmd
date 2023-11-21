@@ -73,7 +73,7 @@ ggplot(avg_temp_df, aes(x = month, y = avg_temp, group = season, color = season)
 
 Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season.
 
-### \*Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, o3, and dewpoint
+### Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, o3, and dewpoint
 
 Produce a similar plot with four sets of lines: mean monthly temperature in celsius, mean montly O3, mean monthly PM10, and mean monthly dewpoint. Figure out a way to distinguish between the four lines. Again, make sure the plot is publication-ready (clean and clear labels). Use the plot to answer the following question:
 
@@ -100,14 +100,14 @@ avg_df <- avg_df %>%
   month %in% c("Oct", "Nov", "Dec") ~ "Autumn"))
 avg_df
 
-#Create serperate data frames for each variable:
+#Create serperate data frames for each variable (found out this works better for graphing below):
 avg_df_o3 <- avg_df[, c(1, 3, 6, 7)]
 avg_df_pm10 <- avg_df[, c(1,4,6,7)]
 avg_df_dew <- avg_df[, c(1,5,6,7)]
 avg_df_temp <- avg_df[, c(1, 2, 6, 7)]
 ```
 
-Ordering:
+Ordering of each data frame:
 
 ```{r}
 # Order the "Month" factor
@@ -152,7 +152,7 @@ ggplot() +
   
 ```
 
-Above we can see a plot with 4 variables being displayed. Both keys show what each color and lin type corresponds to. Using the graph above, we can tell that the Average PM10 variable has the least seasonal trend.
+Above we can see a plot with 4 variables being displayed. Both keys show what each color and line type corresponds to. Using the graph above, we can tell that the Average PM10 variable has the least seasonal trend.
 
 # Problem 2 - OOP Programming
 
@@ -304,7 +304,8 @@ arrival_delay_table <- flights_dt[, .(Mean_Arrival_Delay = mean(arr_delay, na.rm
 
 ```{r}
 # Exclude destinations in the arrival table with under 10 flights
-arrival_delay_table <- arrival_delay_table[ , .(Mean_Arrival_Delay, Median_Arrival_Delay), by = .(dest)][flights_dt[, .N, by = .(dest)][N >= 10]$dest]
+# Exclude destinations with under 10 flights
+arrival_delay_table <- arrival_delay_table[flights_dt[, .N, by = .(dest)][N >= 10]$dest]
 ```
 
 ```{r}
