@@ -1,7 +1,9 @@
 ---
 title: "Stats506_PS6"
 author: "Heleyna Tucker"
-format: html
+format:
+  html:
+    embed-resources: true
 editor: visual
 ---
 
@@ -74,11 +76,11 @@ ggplot(avg_temp_df, aes(x = month, y = avg_temp, group = season, color = season)
 
 Above is a graph of the mean temperature in Celsisus of each month, colored by season, including lines also colored by season connecting the points by season. This behaves how we would expect, with the warmer seasons trending with hotter temperatures and vice versa.
 
-### Part B - Similar plot with four sets of lines -  mean monthly Temp (in C), PM10, o3, and dewpoint
+### Part B - Similar plot with four sets of lines - mean monthly Temp (in C), PM10, o3, and dewpoint
 
 Produce a similar plot with four sets of lines: mean monthly temperature in Celsius, mean montly O3, mean monthly PM10, and mean monthly dewpoint. Figure out a way to distinguish between the four lines. Again, make sure the plot is publication-ready (clean and clear labels). Use the plot to answer the following question:
 
-\"Which of the four variables seems to have the least seasonal trend?\"
+"Which of the four variables seems to have the least seasonal trend?"
 
 Create a df with averages needed. Then, create 4 separate dfs with each mean and month/season information:
 
